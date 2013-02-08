@@ -3,6 +3,7 @@
 #include "ofMain.h"
 #include "ofxOpenCv.h"
 #include "PGRCamera.h"
+#include "ofxControlPanel.h"
 
 // uncomment this to read from two kinects simultaneously
 //#define USE_TWO_KINECTS
@@ -23,4 +24,8 @@ public:
     
 private:
     PGRCamera* pgcamera;
+    ofxCvGrayscaleImage grayImage;
+    ofxCvContourFinder contourFinder;
+    
+    ofxControlPanel gui;
 };
