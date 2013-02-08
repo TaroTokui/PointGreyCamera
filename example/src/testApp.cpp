@@ -33,28 +33,38 @@ void testApp::setup() {
     dc1394_camera_free_list (mCameraList);
     
     /* setup camera */
-    dc1394video_mode_t mVideoMode = DC1394_VIDEO_MODE_FORMAT7_1;
+    dc1394video_mode_t mVideoMode = DC1394_VIDEO_MODE_FORMAT7_3;
     unsigned int mMaxWidth;
     unsigned int mMaxHeight;
     
     check_error(dc1394_video_set_operation_mode(mCamera, DC1394_OPERATION_MODE_1394B));
     check_error(dc1394_format7_get_max_image_size(mCamera, mVideoMode, &mMaxWidth, &mMaxHeight));
     cout << "+++ maximum size for current Format7 mode is " << mMaxWidth << "x" << mMaxHeight << endl;
-    
+
     check_error(dc1394_format7_set_roi(mCamera,
                                        mVideoMode,
-                                       DC1394_COLOR_CODING_RAW8,
+                                       DC1394_COLOR_CODING_MONO8,
                                        DC1394_USE_MAX_AVAIL,
-                                       0, 0, mMaxWidth, mMaxHeight));
+                                       0, 0, 640, 480));
+    
+    // パケットサイズを設定 = format7ではフレームレートが決まる
+    // capture_setupの前に呼び出すこと
+    check_error(dc1394_format7_set_packet_size(mCamera, mVideoMode, 1024));
+    
     check_error(dc1394_video_set_mode(mCamera, mVideoMode));
     const int NUMBER_DMA_BUFFERS = 2;
     check_error(dc1394_capture_setup(mCamera,
                                      NUMBER_DMA_BUFFERS,
                                      DC1394_CAPTURE_FLAGS_DEFAULT));
     
+    // set exposure
+//    dc1394_feature_set_mode(mCamera, DC1394_FEATURE_EXPOSURE, DC1394_FEATURE_MODE_MANUAL);
+//    dc1394_feature_set_absolute_control(mCamera, DC1394_FEATURE_EXPOSURE, DC1394_ON);
+//    dc1394_feature_set_absolute_value(mCamera, DC1394_FEATURE_EXPOSURE, 0.001);
     
     /* grab first frame and dump info */
     check_error(dc1394_video_set_transmission(mCamera, DC1394_ON));
+    dc1394_video_set_framerate(mCamera, DC1394_FRAMERATE_60);
     
     cout << "+++ capture first frame ..." << endl;
     dc1394video_frame_t* mFrame = NULL;
@@ -128,12 +138,27 @@ void testApp::check_error(dc1394error_t pError) {
 
 //--------------------------------------------------------------
 void testApp::keyPressed (int key) {
+    uint32_t min = 0, max = 0;
 	switch (key) {
 			
 		case 'b':
-            // get background image at next frame
+
+            dc1394_feature_set_mode(mCamera, DC1394_FEATURE_EXPOSURE, DC1394_FEATURE_MODE_MANUAL);
+            dc1394_feature_set_absolute_control(mCamera, DC1394_FEATURE_EXPOSURE, DC1394_ON);
+            dc1394_feature_set_absolute_value(mCamera, DC1394_FEATURE_EXPOSURE, 0.001);
+            dc1394_video_set_framerate(mCamera, DC1394_FRAMERATE_30);
+            
 			break;
 			
+		case 'B':
+            // get background image at next frame
+            dc1394_feature_set_mode(mCamera, DC1394_FEATURE_EXPOSURE, DC1394_FEATURE_MODE_MANUAL);
+            dc1394_feature_set_absolute_control(mCamera, DC1394_FEATURE_EXPOSURE, DC1394_ON);
+            dc1394_feature_set_absolute_value(mCamera, DC1394_FEATURE_EXPOSURE, 100);
+//            dc1394_feature_set_mode(mCamera, DC1394_FEATURE_SHUTTER, DC1394_FEATURE_MODE_MANUAL);
+//            dc1394_feature_set_absolute_control(mCamera, DC1394_FEATURE_SHUTTER, DC1394_ON);
+//            dc1394_feature_set_absolute_value(mCamera, DC1394_FEATURE_SHUTTER, 700);
+			break;
 	}
 }
 
