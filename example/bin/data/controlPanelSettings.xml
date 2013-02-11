@@ -1,3 +1,15 @@
 <threshold>
     <val_0>124.667</val_0>
 </threshold>
+<minArea>
+    <val_0>1000</val_0>
+</minArea>
+<maxArea>
+    <val_0>10000</val_0>
+</maxArea>
+<maxBlob>
+    <val_0>10</val_0>
+</maxBlob>
+<forceInward>
+    <val_0>1</val_0>
+</forceInward>

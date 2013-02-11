@@ -22,7 +22,6 @@
 		30F2B70E1415565F00597A7B /* ofxCvHaarFinder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 30F2B66E1415565D00597A7B /* ofxCvHaarFinder.cpp */; };
 		30F2B70F1415565F00597A7B /* ofxCvImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 30F2B6701415565D00597A7B /* ofxCvImage.cpp */; };
 		30F2B7101415565F00597A7B /* ofxCvShortImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 30F2B6731415565D00597A7B /* ofxCvShortImage.cpp */; };
-		52CCEB6F16C8F797005342A9 /* VectorField.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 52CCEB6D16C8F797005342A9 /* VectorField.cpp */; };
 		52FE460816C0B4DF00F38DC0 /* libdc1394.22.1.5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52FE460416C0B4DF00F38DC0 /* libdc1394.22.1.5.dylib */; };
 		52FE460916C0B4DF00F38DC0 /* libdc1394.22.1.5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52FE460516C0B4DF00F38DC0 /* libdc1394.22.1.5.dylib */; };
 		52FE460A16C0B4DF00F38DC0 /* libdc1394.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 52FE460616C0B4DF00F38DC0 /* libdc1394.a */; };
@@ -209,8 +208,6 @@
 		30F2B6731415565D00597A7B /* ofxCvShortImage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxCvShortImage.cpp; sourceTree = "<group>"; };
 		30F2B6741415565D00597A7B /* ofxCvShortImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxCvShortImage.h; sourceTree = "<group>"; };
 		30F2B6751415565D00597A7B /* ofxOpenCv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxOpenCv.h; sourceTree = "<group>"; };
-		52CCEB6D16C8F797005342A9 /* VectorField.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VectorField.cpp; sourceTree = "<group>"; };
-		52CCEB6E16C8F797005342A9 /* VectorField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VectorField.h; sourceTree = "<group>"; };
 		52FE460416C0B4DF00F38DC0 /* libdc1394.22.1.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libdc1394.22.1.5.dylib; path = ../../../../../../../opt/local/lib/libdc1394.22.1.5.dylib; sourceTree = "<group>"; };
 		52FE460516C0B4DF00F38DC0 /* libdc1394.22.1.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libdc1394.22.1.5.dylib; path = ../../../../../../../opt/local/lib/libdc1394.22.1.5.dylib; sourceTree = "<group>"; };
 		52FE460616C0B4DF00F38DC0 /* libdc1394.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libdc1394.a; path = ../../../../../../../opt/local/lib/libdc1394.a; sourceTree = "<group>"; };
@@ -921,8 +918,6 @@
 				E4B69E1F0A3A1BDC003C02F2 /* testApp.h */,
 				52FE461116C4E25600F38DC0 /* PGRCamera.h */,
 				52FE461216C4E26500F38DC0 /* PGRCamera.cpp */,
-				52CCEB6D16C8F797005342A9 /* VectorField.cpp */,
-				52CCEB6E16C8F797005342A9 /* VectorField.h */,
 			);
 			path = src;
 			sourceTree = SOURCE_ROOT;
@@ -1068,7 +1063,6 @@
 				52FE468216C4F9BD00F38DC0 /* tinyxmlerror.cpp in Sources */,
 				52FE468316C4F9BD00F38DC0 /* tinyxmlparser.cpp in Sources */,
 				52FE468416C4F9BD00F38DC0 /* ofxXmlSettings.cpp in Sources */,
-				52CCEB6F16C8F797005342A9 /* VectorField.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
