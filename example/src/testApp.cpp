@@ -4,33 +4,36 @@
 //--------------------------------------------------------------
 void testApp::setup() {
 	ofBackground(0);
-    
+    ofSetFullscreen(true);
 	ofSetFrameRate(60);
     
     pgcamera = new PGRCamera();
     pgcamera->setup();
     
     ofSetRectMode(OF_RECTMODE_CORNER);
-    gui.setup("Control Panel", 660, 20, ofGetWidth()/2.1, ofGetHeight()/2.1);
-    gui.addPanel("Setting", 2);
+    gui.setup("Control Panel", 0, 0, ofGetWidth()/1.4, ofGetHeight()/1.1);
+    gui.addPanel("Setting", 3);
     gui.setWhichColumn(0);
     
     gui.addSlider("Threshold", "threshold", 200, 0, 255, true);
-    gui.addSlider("Threshold2", "threshold2", 200, 0, 255, true);
     gui.addSlider("MinArea", "minArea", 1000, 0, 10000, true);
     gui.addSlider("MaxArea", "maxArea", 10000, 0, 10000, true);
     gui.addSlider("MaxBlob", "maxBlob", 10, 0, 50, true);
     gui.addSlider("Margin", "margin", 50, 0, 255, true);
-    gui.addToggle("Background", "background", true);
-    
-    gui.setWhichColumn(1);
-    gui.addDrawableRect("ContourImage", &grayImage, 320, 240);
+    gui.addToggle("dynamicDiffBG", "background", true);
     gui.addToggle("Reset", "reset", false);
     
+    gui.setWhichColumn(1);
+    gui.addDrawableRect("SrcImage", &srcImage, 320, 240);
+    gui.addDrawableRect("BgImage", &bgImage, 320, 240);
+    
+    gui.setWhichColumn(2);
+    gui.addDrawableRect("FrontSideImage", &fsImage,320, 240);
+    gui.addDrawableRect("GrayImage", &grayImage, 320, 240);
+    
     gui.loadSettings("controlPanelSettings.xml");
-    
+
     // 画像領域を確保
-    
     int width = pgcamera->getGrayImage().width;
     int height = pgcamera->getGrayImage().height;
     grayImage.allocate(width, height);
@@ -49,6 +52,10 @@ void testApp::setup() {
             bgPixels[i+j*width] = 255;
         }
     }
+    
+    texImage.loadImage("image007.jpeg");
+    texImageR.loadImage("image007R.jpeg");
+    
 }
 
 //--------------------------------------------------------------
@@ -115,30 +122,41 @@ void testApp::draw() {
     ofSetRectMode(OF_RECTMODE_CENTER);
 	ofSetColor(255);
 	
-  //  pgcamera->draw();
-    grayImage.draw(grayImage.width/2, grayImage.height/2);
-//    contourFinder.draw(0, 0, 320, 240);
+    grayImage.draw(ofGetWidth()/2, ofGetHeight()/2, ofGetWidth(), ofGetHeight());
     
-    cout << "nBlobs = " << contourFinder.nBlobs << endl;
     ofSetColor(0, 0, 255);
-    ofNoFill();
+    ofEnableBlendMode(OF_BLENDMODE_MULTIPLY);
     for (int i=0; i < contourFinder.nBlobs; i++) {
         fitBox(contourFinder.blobs.at(i).pts, minRect);
-        cout << "i = " << i << " x = " << minRect.center.x << "  y = " << minRect.center.y << "  angle = " << minRect.angle << endl;
+
         ofPushMatrix();
-        ofTranslate(minRect.center.x, minRect.center.y);
+        int tmpX = minRect.center.x * ofGetWidth() / grayImage.getWidth();
+        int tmpY = minRect.center.y * ofGetHeight() / grayImage.getHeight();
+        ofTranslate(tmpX, tmpY);
         ofRotateZ(minRect.angle);
-        ofRect(0, 0, minRect.size.width, minRect.size.height);
+        ofSetColor(255);
+//        ofRect(0, 0, minRect.size.width, minRect.size.height);
+        
+        int tmpSizeX = minRect.size.width * ofGetWidth() / grayImage.getWidth();
+        int tmpSizeY = minRect.size.height * ofGetHeight() / grayImage.getHeight();
+        if( minRect.size.width < minRect.size.height){
+            texImage.draw(0, 0, tmpSizeX, tmpSizeY);
+        }else{
+            texImageR.draw(0, 0, tmpSizeX, tmpSizeY);
+        }
         ofPopMatrix();
     }
+    ofDisableBlendMode();
+    
+    preMinRect = minRect;
     
     ofSetRectMode(OF_RECTMODE_CORNER);
     gui.draw();
     
 	ofSetColor(255);
-    srcImage.draw(0, 500, 320, 240);
-    bgImage.draw(330, 500, 320, 240);
-    fsImage.draw(660, 500, 320, 240);
+  //  srcImage.draw(0, 0, ofGetWidth(), ofGetHeight());
+   // bgImage.draw(330, 500, 320, 240);
+    //fsImage.draw(660, 500, 320, 240);
 }
 
 //-----------------------------------------
@@ -168,6 +186,9 @@ void testApp::exit() {
 //--------------------------------------------------------------
 void testApp::keyPressed (int key) {
     uint32_t min = 0, max = 0;
+    if( key == 'h'){
+        gui.hidden = !gui.hidden;
+    }
 }
 
 //--------------------------------------------------------------

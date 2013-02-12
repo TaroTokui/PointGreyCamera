@@ -31,7 +31,7 @@ private:
     
     ofxControlPanel gui;
     
-    CvBox2D32f minRect;
+    CvBox2D32f minRect, preMinRect;
     
     // ピクセルデータ保存用
     unsigned char *srcPixels;    // 背景画像
@@ -40,5 +40,7 @@ private:
     
     int margin; // 背景と前景の差
     bool background;
+    
+    ofImage texImage, texImageR;
     
 };
