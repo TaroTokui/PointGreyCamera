@@ -50,6 +50,18 @@ void PGRCamera::setup(){
     chkErr(dc1394_format7_get_max_image_size(mCamera, mVideoMode, &mMaxWidth, &mMaxHeight));
     cout << "+++ maximum size for current Format7 mode is " << mMaxWidth << "x" << mMaxHeight << endl;
     
+    // set gain
+    dc1394_feature_set_mode(mCamera, DC1394_FEATURE_GAIN, DC1394_FEATURE_MODE_MANUAL);
+    dc1394_feature_set_absolute_control(mCamera, DC1394_FEATURE_GAIN, DC1394_ON);
+    dc1394_feature_set_power(mCamera, DC1394_FEATURE_GAIN, DC1394_ON );
+    dc1394_feature_set_absolute_value(mCamera, DC1394_FEATURE_GAIN, 30.0);
+    
+    // set exposure
+    dc1394_feature_set_mode(mCamera, DC1394_FEATURE_EXPOSURE, DC1394_FEATURE_MODE_MANUAL);
+    dc1394_feature_set_absolute_control(mCamera, DC1394_FEATURE_EXPOSURE, DC1394_ON);
+    dc1394_feature_set_power(mCamera, DC1394_FEATURE_EXPOSURE, DC1394_ON );
+    dc1394_feature_set_absolute_value(mCamera, DC1394_FEATURE_EXPOSURE, 0.1);
+    
     chkErr(dc1394_format7_set_roi(mCamera,
                                        mVideoMode,
                                        DC1394_COLOR_CODING_MONO8,
@@ -65,11 +77,6 @@ void PGRCamera::setup(){
     chkErr(dc1394_capture_setup(mCamera,
                                      NUMBER_DMA_BUFFERS,
                                      DC1394_CAPTURE_FLAGS_DEFAULT));
-    
-    // set exposure
-    //    dc1394_feature_set_mode(mCamera, DC1394_FEATURE_EXPOSURE, DC1394_FEATURE_MODE_MANUAL);
-    //    dc1394_feature_set_absolute_control(mCamera, DC1394_FEATURE_EXPOSURE, DC1394_ON);
-    //    dc1394_feature_set_absolute_value(mCamera, DC1394_FEATURE_EXPOSURE, 0.001);
     
     /* grab first frame and dump info */
     chkErr(dc1394_video_set_transmission(mCamera, DC1394_ON));

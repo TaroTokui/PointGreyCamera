@@ -24,6 +24,25 @@ public:
 	void mouseReleased(int x, int y, int button);
 	void windowResized(int w, int h);
     
+    
+    void setupArduino(const int & version);
+    void digitalPinChanged(const int & pinNum);
+    void analogPinChanged(const int & pinNum);
+	void updateArduino();
+    
+    ofArduino ard;
+	bool		bSetupArduino;			// flag variable for setting up arduino once
+    
+    string buttonState;
+    string potValue;
+    
+    ofFbo fbo;
+    // 2013/03/03
+//    unsigned char *fboPixels;    // 背景画像
+//    ofImage fboImage;
+    
+    void drawFbo(); // draws some test graphics into the two fbos
+    
 private:
     PGRCamera* pgcamera;
     ofxCvGrayscaleImage grayImage, bgImage, fsImage, srcImage;
