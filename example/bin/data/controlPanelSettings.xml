@@ -13,3 +13,33 @@
 <forceInward>
     <val_0>1</val_0>
 </forceInward>
+<margin>
+    <val_0>50</val_0>
+</margin>
+<background>
+    <val_0>1</val_0>
+</background>
+<reset>
+    <val_0>0</val_0>
+</reset>
+<x1>
+    <val_0>0</val_0>
+</x1>
+<y1>
+    <val_0>0</val_0>
+</y1>
+<x2>
+    <val_0>1440</val_0>
+</x2>
+<y2>
+    <val_0>900</val_0>
+</y2>
+<feedThresh>
+    <val_0>11.3667</val_0>
+</feedThresh>
+<accel>
+    <val_0>26.6667</val_0>
+</accel>
+<tapInterval>
+    <val_0>100</val_0>
+</tapInterval>

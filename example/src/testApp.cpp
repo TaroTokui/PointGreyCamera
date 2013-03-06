@@ -3,6 +3,7 @@
 
 //--------------------------------------------------------------
 void testApp::setup() {
+    ofSetFrameRate(60);
 	ofBackground(0);
     ofSetFullscreen(true);
 	ofSetFrameRate(60);
@@ -40,7 +41,7 @@ void testApp::setup() {
     
     gui.addPanel("Sensor", 1);
     gui.setWhichPanel(2);
-    gui.addSlider("FeedThresh", "feedThresh", 450, 0, 1023, true);
+    gui.addSlider("FeedThresh", "feedThresh", 10, 0, 1023, true);
     gui.addSlider("AccelDiff", "accel", 5, 0, 50, true);
     gui.addSlider("TapInterval", "tapInterval", 500, 0, 1000, true);
     
@@ -68,6 +69,8 @@ void testApp::setup() {
     
     texImage.loadImage("image007.jpeg");
     texImageR.loadImage("image007R.jpeg");
+    heartsImage.loadImage("hearts.jpg");
+    heartsImageR.loadImage("heartsR.jpg");
     
     ard.connect("/dev/tty.usbmodemfd121", 57600);
 	ofAddListener(ard.EInitialized, this, &testApp::setupArduino);
@@ -78,12 +81,19 @@ void testApp::setup() {
 	fbo.begin();
 	ofClear(255,255,255, 0);
     fbo.end();
+    
   // 2013/03/03
-//    fboPixels = (unsigned char*)malloc(ofGetWidth() * ofGetHeight());
+    //fboPixels = (unsigned char*)malloc(ofGetWidth() * ofGetHeight());
     
     isTapping = false;
     feedCnt = 0;
     preAcc = 0;
+    
+    // font
+    ofTrueTypeFont::setGlobalDpi(72);
+	verdana14.loadFont("verdana.ttf", 30, true, true);
+	verdana14.setLineHeight(18.0f);
+	verdana14.setLetterSpacing(1.037);
 }
 
 //--------------------------------------------------------------
@@ -145,38 +155,45 @@ void testApp::update() {
     drawFbo();
     fbo.end();
     
-    // 2013/03/04
-//    ofPixels fboPixels;
-//    fbo.readToPixels(fboPixels);
-//    
-//    int w = fbo.getWidth();
-//    int h = fbo.getHeight();
-//    for (int j=0; j<h; j++) {
-//        for (int i=0; i<w; i++) {
-//            if( fboPixels[j*w*3 + i] > 250 && fboPixels[j*w*3 + i+1] > 250 && fboPixels[j*w*3 + i+2] >250) {
-//                fboPixels[j*w*3 + i + 0] = 0;
-//                fboPixels[j*w*3 + i + 1] = 0;
-//                fboPixels[j*w*3 + i + 2] = 0;
-//            }
-//        }
-//    }
-//    fboImage.setFromPixels(fboPixels);
+    // 2013/03/06
+    // 輪郭だけ残る
+    ofPixels fboPixels;
+    fbo.readToPixels(fboPixels);
+    
+    int w = fbo.getWidth();
+    int h = fbo.getHeight();
+    for (int j=0; j<h; j++) {
+        for (int i=0; i<w; i++) {
+            int pos = (w * j + i ) *4;
+            if( fboPixels[pos] > 250 && fboPixels[pos+1] > 250 && fboPixels[pos+2] >250) {
+                fboPixels[pos + 0] = 0;
+                fboPixels[pos + 1] = 0;
+                fboPixels[pos + 2] = 0;
+            }
+        }
+    }
+    fboImage.setFromPixels(fboPixels);
     
 }
 
 //--------------------------------------------------------------
 void testApp::draw() {
     ofSetRectMode(OF_RECTMODE_CORNER);
-    fbo.draw(gui.getValueI("x1"), gui.getValueI("y1"), gui.getValueI("x2"), gui.getValueI("y2"));
-//    fboImage.draw(gui.getValueI("x1"), gui.getValueI("y1"), gui.getValueI("x2"), gui.getValueI("y2"));
+//    fbo.draw(gui.getValueI("x1"), gui.getValueI("y1"), gui.getValueI("x2"), gui.getValueI("y2"));
+    fboImage.draw(gui.getValueI("x1"), gui.getValueI("y1"), gui.getValueI("x2"), gui.getValueI("y2"));
+    if( gui.getValueB("background") ){
+        ofBackground(0);
+        ofSetColor(255, 255, 255);
+        ofRect(gui.getValueI("x1"), gui.getValueI("y1"), gui.getValueI("x2"), gui.getValueI("y2"));
+    }
     gui.draw();
     
 	ofSetColor(255);
     //  srcImage.draw(0, 0, ofGetWidth(), ofGetHeight());
     // bgImage.draw(330, 500, 320, 240);
     //fsImage.draw(660, 500, 320, 240);
-    if (isTapping)
-    ofDrawBitmapString(ofToString(diff), ofGetWidth() - 100, 20);
+//    if (isTapping)
+//    ofDrawBitmapString(ofToString(diff), ofGetWidth() - 100, 20);
 }
 
 //--------------------------------------------------------------
@@ -205,9 +222,21 @@ void testApp::drawFbo() {
         int tmpSizeY = minRect.size.height * ofGetHeight() / grayImage.getHeight();
         
         if( minRect.size.width < minRect.size.height){
-            texImage.draw(0, 0, tmpSizeX, tmpSizeY);
+            if( isTapping ){
+                heartsImage.draw(0, 0, tmpSizeX, tmpSizeY);
+                ofSetColor(225);
+                verdana14.drawString("Hello!", 0, 0);
+            }else{
+                texImage.draw(0, 0, tmpSizeX, tmpSizeY);
+            }
         }else{
-            texImageR.draw(0, 0, tmpSizeX, tmpSizeY);
+            if( isTapping ){
+                heartsImageR.draw(0, 0, tmpSizeX, tmpSizeY);
+                ofSetColor(225);
+                verdana14.drawString("Hello!", 0, 0);
+            }else{
+                texImageR.draw(0, 0, tmpSizeX, tmpSizeY);
+            }
         }
         ofPopMatrix();
     }
@@ -325,10 +354,14 @@ void testApp::analogPinChanged(const int & pinNum) {
     
     thermo = 5.0 * float(ard.getAnalog(1)) * 100.0 / 1024.0;
     cout << "T = " << thermo << "    V = " << ard.getAnalog(1) << endl;
-        
-    // TODO:guiで指定する
-    feedCnt += ard.getAnalog(0) > gui.getValueI("feedThresh") ? 1 : 0;
-    
+     
+    if( ard.getAnalog(0) > gui.getValueI("feedThresh") ){
+        feedCnt++;
+    }
+//    feedCnt += (ard.getAnalog(0) > gui.getValueI("feedThresh")) ? 1 : 0;
+    cout << "feedCnt: " << feedCnt << endl;
+
+    cout << "geed" << ard.getAnalog(0) << endl;
     diff = abs(ard.getAnalog(2) + ard.getAnalog(3) + ard.getAnalog(4) - preAcc);
     preAcc = ard.getAnalog(2) + ard.getAnalog(3) + ard.getAnalog(4);
     

@@ -37,7 +37,7 @@ public:
     
     ofFbo fbo;
     // 2013/03/03
-//    unsigned char *fboPixels;    // 背景画像
+    //unsigned char *fboPixels;    // 背景画像
     ofImage fboImage;
     
     void drawFbo(); // draws some test graphics into the two fbos
@@ -60,10 +60,13 @@ private:
     bool background;
     
     ofImage texImage, texImageR;
+    ofImage heartsImage, heartsImageR;
     
     float thermo;
     bool isTapping;
     int elapseTapTime;
     int feedCnt;
     int preAcc, diff;
+    
+    ofTrueTypeFont	verdana14;
 };
