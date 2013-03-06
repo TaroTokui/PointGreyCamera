@@ -38,6 +38,12 @@ void testApp::setup() {
     gui.addSlider("X2", "x2", ofGetWidth(), ofGetWidth()/2, ofGetWidth(), true);
     gui.addSlider("Y2", "y2", ofGetHeight(), ofGetHeight()/2, ofGetHeight(), true);
     
+    gui.addPanel("Sensor", 1);
+    gui.setWhichPanel(2);
+    gui.addSlider("FeedThresh", "feedThresh", 450, 0, 1023, true);
+    gui.addSlider("AccelDiff", "accel", 5, 0, 50, true);
+    gui.addSlider("TapInterval", "tapInterval", 500, 0, 1000, true);
+    
     gui.loadSettings("controlPanelSettings.xml");
 
     // 画像領域を確保
@@ -74,6 +80,10 @@ void testApp::setup() {
     fbo.end();
   // 2013/03/03
 //    fboPixels = (unsigned char*)malloc(ofGetWidth() * ofGetHeight());
+    
+    isTapping = false;
+    feedCnt = 0;
+    preAcc = 0;
 }
 
 //--------------------------------------------------------------
@@ -135,7 +145,7 @@ void testApp::update() {
     drawFbo();
     fbo.end();
     
-    // 2013/03/03
+    // 2013/03/04
 //    ofPixels fboPixels;
 //    fbo.readToPixels(fboPixels);
 //    
@@ -143,10 +153,14 @@ void testApp::update() {
 //    int h = fbo.getHeight();
 //    for (int j=0; j<h; j++) {
 //        for (int i=0; i<w; i++) {
-//            if( fboPixels[j*w*3 + i] == 255 ) fboPixels[j*w*3 + i] = 0;
+//            if( fboPixels[j*w*3 + i] > 250 && fboPixels[j*w*3 + i+1] > 250 && fboPixels[j*w*3 + i+2] >250) {
+//                fboPixels[j*w*3 + i + 0] = 0;
+//                fboPixels[j*w*3 + i + 1] = 0;
+//                fboPixels[j*w*3 + i + 2] = 0;
+//            }
 //        }
 //    }
-//    fboImage.setFromPixels(fboPixels, w, h);
+//    fboImage.setFromPixels(fboPixels);
     
 }
 
@@ -154,23 +168,27 @@ void testApp::update() {
 void testApp::draw() {
     ofSetRectMode(OF_RECTMODE_CORNER);
     fbo.draw(gui.getValueI("x1"), gui.getValueI("y1"), gui.getValueI("x2"), gui.getValueI("y2"));
+//    fboImage.draw(gui.getValueI("x1"), gui.getValueI("y1"), gui.getValueI("x2"), gui.getValueI("y2"));
     gui.draw();
     
-	ofSetColor(0xffffff);
+	ofSetColor(255);
     //  srcImage.draw(0, 0, ofGetWidth(), ofGetHeight());
     // bgImage.draw(330, 500, 320, 240);
     //fsImage.draw(660, 500, 320, 240);
+    if (isTapping)
+    ofDrawBitmapString(ofToString(diff), ofGetWidth() - 100, 20);
 }
 
 //--------------------------------------------------------------
 void testApp::drawFbo() {
 	
     ofSetRectMode(OF_RECTMODE_CENTER);
-	ofSetColor(0xffffff);
+	//ofSetColor(255);
 	
     grayImage.draw(ofGetWidth()/2, ofGetHeight()/2, ofGetWidth(), ofGetHeight());
     
-    ofSetColor(0, 0, 255);
+    // 2013/03/04
+    // 黒い領域のα値を0にできないか？
     ofEnableBlendMode(OF_BLENDMODE_MULTIPLY);
     for (int i=0; i < contourFinder.nBlobs; i++) {
         fitBox(contourFinder.blobs.at(i).pts, minRect);
@@ -180,7 +198,7 @@ void testApp::drawFbo() {
         int tmpY = minRect.center.y * ofGetHeight() / grayImage.getHeight();
         ofTranslate(tmpX, tmpY);
         ofRotateZ(minRect.angle);
-        ofSetColor(0xffffff);
+        //ofSetColor(255);
 //        ofRect(0, 0, minRect.size.width, minRect.size.height);
         
         int tmpSizeX = minRect.size.width * ofGetWidth() / grayImage.getWidth();
@@ -229,6 +247,13 @@ void testApp::keyPressed (int key) {
     if( key == 'h'){
         gui.hidden = !gui.hidden;
     }
+    if (key == 'r'){
+        feedCnt = 0;
+    }
+    
+    if (key == 'f'){
+        ofToggleFullscreen();
+    }
 }
 
 //--------------------------------------------------------------
@@ -272,27 +297,13 @@ void testApp::setupArduino(const int & version) {
     // If using Arduino 0022 or older, then use 16 - 21.
     // Firmata pin numbering changed in version 2.3 (which is included in Arduino 1.0)
     
-    // set pins D2 and A5 to digital input
-    ard.sendDigitalPinMode(2, ARD_INPUT);
-    ard.sendDigitalPinMode(19, ARD_INPUT);  // pin 21 if using StandardFirmata from Arduino 0022 or older
-    
     // set pin A0 to analog input
     ard.sendAnalogPinReporting(0, ARD_ANALOG);
+    ard.sendAnalogPinReporting(1, ARD_ANALOG);
+    ard.sendAnalogPinReporting(2, ARD_ANALOG);
+    ard.sendAnalogPinReporting(3, ARD_ANALOG);
+    ard.sendAnalogPinReporting(4, ARD_ANALOG);
     
-    // set pin D13 as digital output
-	ard.sendDigitalPinMode(13, ARD_OUTPUT);
-    // set pin A4 as digital output
-    ard.sendDigitalPinMode(18, ARD_OUTPUT);  // pin 20 if using StandardFirmata from Arduino 0022 or older
-    
-    // set pin D11 as PWM (analog output)
-	ard.sendDigitalPinMode(11, ARD_PWM);
-    
-    // attach a servo to pin D9
-    // servo motors can only be attached to pin D3, D5, D6, D9, D10, or D11
-    ard.sendServoAttach(9);
-	
-    // Listen for changes on the digital and analog pins
-    ofAddListener(ard.EDigitalPinChanged, this, &testApp::digitalPinChanged);
     ofAddListener(ard.EAnalogPinChanged, this, &testApp::analogPinChanged);
 }
 
@@ -303,23 +314,6 @@ void testApp::updateArduino(){
     // the call to ard.update() is required
 	ard.update();
 	
-	// do not send anything until the arduino has been set up
-	if (bSetupArduino) {
-        // fade the led connected to pin D11
-		ard.sendPwm(11, (int)(128 + 128 * sin(ofGetElapsedTimef())));   // pwm...
-	}
-    
-}
-
-// digital pin event handler, called whenever a digital pin value has changed
-// note: if an analog pin has been set as a digital pin, it will be handled
-// by the digitalPinChanged function rather than the analogPinChanged function.
-
-//--------------------------------------------------------------
-void testApp::digitalPinChanged(const int & pinNum) {
-    // do something with the digital input. here we're simply going to print the pin number and
-    // value to the screen each time it changes
-    buttonState = "digital pin: " + ofToString(pinNum) + " = " + ofToString(ard.getDigital(pinNum));
 }
 
 // analog pin event handler, called whenever an analog pin value has changed
@@ -328,5 +322,22 @@ void testApp::digitalPinChanged(const int & pinNum) {
 void testApp::analogPinChanged(const int & pinNum) {
     // do something with the analog input. here we're simply going to print the pin number and
     // value to the screen each time it changes
-    potValue = "analog pin: " + ofToString(pinNum) + " = " + ofToString(ard.getAnalog(pinNum));
+    
+    thermo = 5.0 * float(ard.getAnalog(1)) * 100.0 / 1024.0;
+    cout << "T = " << thermo << "    V = " << ard.getAnalog(1) << endl;
+        
+    // TODO:guiで指定する
+    feedCnt += ard.getAnalog(0) > gui.getValueI("feedThresh") ? 1 : 0;
+    
+    diff = abs(ard.getAnalog(2) + ard.getAnalog(3) + ard.getAnalog(4) - preAcc);
+    preAcc = ard.getAnalog(2) + ard.getAnalog(3) + ard.getAnalog(4);
+    
+    if( diff > gui.getValueI("accel") ){
+        elapseTapTime = ofGetElapsedTimeMillis();
+        isTapping = true;
+    }
+    if ((ofGetElapsedTimeMillis() - elapseTapTime) > gui.getValueI("tapInterval") * 10){
+        isTapping = false;
+    }
+    
 }

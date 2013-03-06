@@ -26,12 +26,11 @@ public:
     
     
     void setupArduino(const int & version);
-    void digitalPinChanged(const int & pinNum);
     void analogPinChanged(const int & pinNum);
 	void updateArduino();
     
     ofArduino ard;
-	bool		bSetupArduino;			// flag variable for setting up arduino once
+	bool bSetupArduino;			// flag variable for setting up arduino once
     
     string buttonState;
     string potValue;
@@ -39,7 +38,7 @@ public:
     ofFbo fbo;
     // 2013/03/03
 //    unsigned char *fboPixels;    // 背景画像
-//    ofImage fboImage;
+    ofImage fboImage;
     
     void drawFbo(); // draws some test graphics into the two fbos
     
@@ -62,4 +61,9 @@ private:
     
     ofImage texImage, texImageR;
     
+    float thermo;
+    bool isTapping;
+    int elapseTapTime;
+    int feedCnt;
+    int preAcc, diff;
 };
